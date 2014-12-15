@@ -57,6 +57,7 @@ _default_config = {
         'exchange_durable': True,
         'routing_keys': {
             'user': 'status.user',
+            'endpoint': 'status.endpoint',
         }
     }
 }
