@@ -58,6 +58,7 @@ from xivo_cti.cti.commands.queue_add import QueueAdd
 from xivo_cti.cti.commands.queue_pause import QueuePause
 from xivo_cti.cti.commands.queue_remove import QueueRemove
 from xivo_cti.cti.commands.queue_unpause import QueueUnPause
+from xivo_cti.cti.commands.register_endpoint_status import RegisterEndpointStatus
 from xivo_cti.cti.commands.subscribe import SubscribeCurrentCalls, \
     SubscribeMeetmeUpdate, SubscribeQueueEntryUpdate
 from xivo_cti.cti.commands.subscribetoqueuesstats import SubscribeToQueuesStats
@@ -132,6 +133,8 @@ class CTIServer(object):
         bus_status_notifier_cfg.pop('routing_keys')
         context.register('bus_status_notifier', BusProducer(BusConfig(**bus_status_notifier_cfg)))
 
+        context.get('status_forwarder').run()
+
         self.interface_ami = context.get('interface_ami')
 
         self._user_service_manager = context.get('user_service_manager')
@@ -188,6 +191,11 @@ class CTIServer(object):
         people_adapter = context.get('people_cti_adapter')
         PeopleSearch.register_callback_params(people_adapter.search, ('user_id', 'pattern'))
         PeopleHeaders.register_callback_params(people_adapter.get_headers, ['user_id'])
+        endpoint_status_notifier = context.get('status_forwarder').endpoint_status_notifier
+        RegisterEndpointStatus.register_callback_params(
+            endpoint_status_notifier.register,
+            ['cti_connection', 'endpoint_ids'],
+        )
         CallFormResult.register_callback_params(
             self._call_form_result_handler.parse, ['user_id', 'variables'],
         )
